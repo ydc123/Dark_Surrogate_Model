@@ -120,10 +120,7 @@ def train(train_loader,optimizer, model, model_teacher, epoch, args):
 
     model.train()
     if model_teacher != None:
-        if args.mode == 'eval':
-            model_teacher.eval()
-        else:
-            model_teacher.train()
+        model_teacher.eval()
     for i, (images, targets) in enumerate(tqdm(train_loader)):
         # measure data loading time
         data_time.update(time.time() - end)
@@ -274,7 +271,6 @@ if __name__=='__main__':
                             ' | '.join(model_names) +
                             ' (default: resnet18)')
     parser.add_argument('--savename', type=str, default='demo')
-    parser.add_argument('--mode', type=str, default='eval')
     parser.add_argument('--ckpt_teacher', type=str, default=None)
     parser.add_argument('--arch_teacher', type=str, default=None)
     parser.add_argument('--update', help='whether to update centers at each iter', action='store_true')
