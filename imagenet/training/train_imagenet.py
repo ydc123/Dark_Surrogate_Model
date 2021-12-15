@@ -238,7 +238,7 @@ class Cutout(object):
 		img *= mask
 		return img
 if __name__=='__main__':
-    paths = ['/data/yangdingcheng/ILSVRC2012', '/data/home/yangdingcheng/ILSVRC2012',
+    paths = ['/data2/yangdingcheng/ILSVRC2012', '/data/yangdingcheng/ILSVRC2012', '/data/home/yangdingcheng/ILSVRC2012',
         '/data/data1/yangdingcheng/ILSVRC2012', '/home/yangdc/ILSVRC2012']
     for path in paths:
         if os.path.exists(path):
