@@ -333,7 +333,7 @@ if __name__=='__main__':
     model_teacher = None
     model = torchvision.models.__dict__[args.arch]()
     if args.arch_teacher != None:
-        model_teacher = torchvision.models.__dict__[args.arch](pretrained=True)
+        model_teacher = torchvision.models.__dict__[args.arch_teacher](pretrained=True)
     bestacc = 0
     
     if args.ckpt_teacher != None:
