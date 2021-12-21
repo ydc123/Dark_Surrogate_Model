@@ -32,7 +32,8 @@ def LS_loss(outputs, smooth_labels):
     loss = torch.nn.KLDivLoss(reduction='batchmean')
     return loss(F.log_softmax(outputs, dim=1), smooth_labels)
 def SKD_loss(t_outputs, s_outputs, labels):
-    perm = torch.randperm(t_outputs.shape[1], device=t_outputs.device)
+    perm = torch.arange(s_outputs.shape[1], device=s_outputs.device) + 1
+    perm[-1] = 0
     inv = torch.zeros_like(perm)
     inv[perm] = torch.arange(perm.size(0), device=perm.device)
     t_outputs_shuffled = t_outputs[:, perm]
@@ -41,4 +42,12 @@ def SKD_loss(t_outputs, s_outputs, labels):
     t_outputs_shuffled.scatter_(1, inv[labels].reshape(-1, 1), tmp_outputs_2)
     t_outputs_shuffled.scatter_(1, labels.reshape(-1, 1), tmp_outputs_1)
     t_outputs_shuffled = t_outputs_shuffled.clone().detach()
+    return KD_loss(t_outputs_shuffled, s_outputs)
+def RKD_loss(t_outputs, s_outputs, labels):
+    one_hot = F.one_hot(labels, num_classes=t_outputs.shape[1]).float()
+    t_outputs_modified = t_outputs + one_hot * (t_outputs.abs().max() + 1)
+    perm = torch.argsort(t_outputs_modified, dim=1)
+    t_outputs_shuffled = t_outputs.gather(1, perm)
+    perm[:, :-1] = torch.flip(perm[:, :-1], dims=[1])
+    t_outputs_shuffled = torch.scatter(t_outputs_shuffled, 1, perm, t_outputs_shuffled)
     return KD_loss(t_outputs_shuffled, s_outputs)

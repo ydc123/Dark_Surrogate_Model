@@ -15,7 +15,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 from torch.autograd import Variable
-from utils import AverageMeter, CE_loss, KD_loss, LS_loss, SKD_loss
+from utils import AverageMeter, CE_loss, KD_loss, LS_loss, SKD_loss, RKD_loss
 
 from tqdm import tqdm
 import shutil
@@ -137,13 +137,19 @@ def train(train_loader,optimizer, model, model_teacher, epoch, args):
         elif args.loss == 'CE':
             loss = CE_loss(outputs, targets)
         elif args.loss == 'LS':
-            one_hot_label = F.one_hot(targets, num_classes=10).float()
-            smooth_labels = one_hot_label * (1 - args.lambd_LS) + (1 - one_hot_label) * args.lambd_LS / 9
+            num_classes = outputs.shape[1]
+            one_hot_label = F.one_hot(targets, num_classes=num_classes).float()
+            smooth_labels = one_hot_label * (1 - args.lambd_LS) + \
+                (1 - one_hot_label) * args.lambd_LS / (num_classes - 1)
             loss = LS_loss(outputs, smooth_labels)
         elif args.loss == 'SKD':
             with torch.no_grad():
                 t_outputs = model_teacher(images)
             loss = SKD_loss(t_outputs, outputs, targets)
+        elif args.loss == 'RKD':
+            with torch.no_grad():
+                t_outputs = model_teacher(images)
+            loss = RKD_loss(t_outputs, outputs, targets)
         else:
             raise NotImplementedError
 
@@ -273,7 +279,6 @@ if __name__=='__main__':
     parser.add_argument('--savename', type=str, default='demo')
     parser.add_argument('--ckpt_teacher', type=str, default=None)
     parser.add_argument('--arch_teacher', type=str, default=None)
-    parser.add_argument('--update', help='whether to update centers at each iter', action='store_true')
     parser.add_argument('--bs', help='batch size', type=int, default=256)
     parser.add_argument('--cutout', action='store_true',
                     default=False, help='whether to use cutout')
@@ -283,6 +288,8 @@ if __name__=='__main__':
                     default=False, help='whether to use mixup')
     parser.add_argument('--loss', type=str,
         help='loss function')
+    parser.add_argument('--lambd_LS', type=float,
+        help='lambda for label smoothing')
 
     args = parser.parse_args()
     print(args)
@@ -315,7 +322,7 @@ if __name__=='__main__':
     transform_train = transforms.Compose(transform_train)
     trainset = torchvision.datasets.ImageFolder(root=traindir,transform=transform_train)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.bs,
-                                          shuffle=True, num_workers=8)
+                                          shuffle=True, num_workers=4)
     width = 224 if 'inception' not in args.arch else 299
     print(width)
     testset = torchvision.datasets.ImageFolder(root=testdir,transform=
