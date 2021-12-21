@@ -126,16 +126,19 @@ def train(train_loader,optimizer, model, model_teacher, epoch, args):
         data_time.update(time.time() - end)
         images, targets = images.cuda(), targets.cuda()
         if args.cutmix:
-            images = cutmix_data(images)
+            images, targets_b, lam = cutmix_data(images, targets)
         if args.mixup:
-            images = mixup_data(images)
+            images, targets_b, lam = mixup_data(images, targets)
         outputs = model(images)
         if args.loss == 'KD':
             with torch.no_grad():
                 t_outputs = model_teacher(images)
             loss = KD_loss(t_outputs, outputs)
         elif args.loss == 'CE':
-            loss = CE_loss(outputs, targets)
+            if args.cutmix or args.mixup:
+                loss = lam * CE_loss(outputs, targets) + (1 - lam) * CE_loss(outputs, targets_b)
+            else:
+                loss = CE_loss(outputs, targets)
         elif args.loss == 'LS':
             num_classes = outputs.shape[1]
             one_hot_label = F.one_hot(targets, num_classes=num_classes).float()
@@ -184,7 +187,7 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
-def mixup_data(x, alpha=1.0):
+def mixup_data(x, y, alpha=1.0):
     '''Returns mixed inputs, pairs of targets, and lambda'''
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
@@ -195,7 +198,7 @@ def mixup_data(x, alpha=1.0):
     index = torch.randperm(batch_size).cuda()
 
     mixed_x = lam * x + (1 - lam) * x[index, :]
-    return mixed_x
+    return mixed_x, y[index], lam
 
 def rand_bbox(size, lam):
     W = size[2]
@@ -215,13 +218,13 @@ def rand_bbox(size, lam):
 
     return bbx1, bby1, bbx2, bby2
 
-def cutmix_data(x, alpha=1.0):
+def cutmix_data(x, y, alpha=1.0):
     lam = np.random.beta(alpha, alpha)
     batch_size = x.size()[0]
     index = torch.randperm(batch_size).cuda()
     bbx1, bby1, bbx2, bby2 = rand_bbox(x.size(), lam)
     x[:, :, bbx1:bbx2, bby1:bby2] = x[index, :, bbx1:bbx2, bby1:bby2]
-    return x
+    return x, y[index], lam
 
 class Cutout(object):
 	def __init__(self, length):
@@ -286,6 +289,8 @@ if __name__=='__main__':
                     default=False, help='whether to use cutmix')
     parser.add_argument('--mixup', action='store_true',
                     default=False, help='whether to use mixup')
+    parser.add_argument('--rotate', action='store_true',
+                    default=False, help='whether to use rotate')
     parser.add_argument('--loss', type=str,
         help='loss function')
     parser.add_argument('--lambd_LS', type=float,
@@ -319,6 +324,8 @@ if __name__=='__main__':
         normalize]
     if args.cutout:
         transform_train.append(Cutout(112))
+    if args.rotate:
+        transform_train.append(transforms.RandomRotation(degrees=30))
     transform_train = transforms.Compose(transform_train)
     trainset = torchvision.datasets.ImageFolder(root=traindir,transform=transform_train)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.bs,
