@@ -250,10 +250,7 @@ if __name__=='__main__':
             help='number of epochs to train')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-    parser.add_argument('--pretrained', default=None, nargs='+',
-            help='pretrained model ( for mixtest \
-            the first pretrained model is the big one \
-            and the sencond is the small net)')
+    parser.add_argument('--resume', default=None, type=str)
     parser.add_argument('--seed', default=11037, type=int,
                     help='seed for initializing training. ')
     parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
@@ -353,12 +350,12 @@ if __name__=='__main__':
     optimizer = optim.SGD(model.parameters(), 
                 lr=args.lr, momentum=args.momentum, weight_decay= args.weight_decay)
 
-    if not args.pretrained:
+    if args.resume == None:
         bestacc = 0
         accs = []
         losses = []
     else:
-        pretrained_model = torch.load(args.pretrained)
+        pretrained_model = torch.load(args.resume)
         bestacc = max([x[0] for x in pretrained_model['acc']])
         accs = pretrained_model['acc']
         losses = pretrained_model['loss']
