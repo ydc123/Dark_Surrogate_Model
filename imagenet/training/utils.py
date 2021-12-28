@@ -32,8 +32,7 @@ def LS_loss(outputs, smooth_labels):
     loss = torch.nn.KLDivLoss(reduction='batchmean')
     return loss(F.log_softmax(outputs, dim=1), smooth_labels)
 def SKD_loss(t_outputs, s_outputs, labels):
-    perm = torch.arange(s_outputs.shape[1], device=s_outputs.device) + 1
-    perm[-1] = 0
+    perm = torch.randperm(t_outputs.shape[1], device=t_outputs.device)
     inv = torch.zeros_like(perm)
     inv[perm] = torch.arange(perm.size(0), device=perm.device)
     t_outputs_shuffled = t_outputs[:, perm]
