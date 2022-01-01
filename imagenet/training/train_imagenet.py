@@ -126,7 +126,7 @@ def train(train_loader,optimizer, model, model_teacher, epoch, args):
         data_time.update(time.time() - end)
         images, targets = images.cuda(), targets.cuda()
         if args.cutmix:
-            images, targets_b, lam = cutmix_data(images, targets)
+            images, targets_b, lam = cutmix_data(images, targets, args.alpha_cutmix)
         if args.mixup:
             images, targets_b, lam = mixup_data(images, targets)
         outputs = model(images)
@@ -284,6 +284,8 @@ if __name__=='__main__':
                     default=False, help='whether to use cutout')
     parser.add_argument('--cutmix', action='store_true',
                     default=False, help='whether to use cutmix')
+    parser.add_argument('--alpha_cutmix', type=float,
+                    default=1.0, help='alpha for cutmix')
     parser.add_argument('--mixup', action='store_true',
                     default=False, help='whether to use mixup')
     parser.add_argument('--rotate', action='store_true',
