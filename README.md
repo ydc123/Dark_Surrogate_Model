@@ -1,4 +1,4 @@
-This repository is the official repository of our paper "Boosting the Adversarial Transferability of Surrogate Model with Dark Knowledge". We will release more codes as soon.
+This repository is the official repository of our paper "Boosting the Adversarial Transferability of Surrogate Model with Dark Knowledge". We will release more codes soon.
 
 You can refer to `imagenet/training/train_imagenet.py` to train your own dark surrogate model.
 
