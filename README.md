@@ -1,5 +1,3 @@
-**FLAG**: I decide to release more codes in Octorber.
-
 I have released three ResNet models on Baidu Netdist ([link, 链接](https://pan.baidu.com/s/1wSH8GKH6KlXJv5NSjpq-NQ) with password j7fg). They can be used as baselines for comparison. They includes:
 * resnet18_CE, a ResNet18 model trained with cross-entropy loss function.
 * SD_resnet18_cutmix, a dark ResNet18 trained with teacher model ''resnet18_CE''. The CutMix skill is used during training.
