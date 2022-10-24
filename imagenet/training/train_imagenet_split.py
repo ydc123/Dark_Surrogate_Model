@@ -299,6 +299,7 @@ if __name__=='__main__':
                     default=False, help='whether to use mixup')
     parser.add_argument('--rotate', action='store_true',
                     default=False, help='whether to use rotate')
+    parser.add_argument('--version', type=int, choices=[0, 1], default=1)
     parser.add_argument('--loss', type=str,
         help='loss function')
     parser.add_argument('--lambd_LS', type=float,
@@ -336,6 +337,13 @@ if __name__=='__main__':
         transform_train.append(transforms.RandomRotation(degrees=30))
     transform_train = transforms.Compose(transform_train)
     trainset = torchvision.datasets.ImageFolder(root=traindir,transform=transform_train)
+    all_indices = list(range(len(trainset)))
+    random.shuffle(all_indices)
+    if args.version == 0:
+        train_indices = all_indices[:len(all_indices) // 2]
+    else:
+        train_indices = all_indices[len(all_indices) // 2:]
+    trainset = torch.utils.data.Subset(trainset, train_indices)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.bs,
                                           shuffle=True, num_workers=4)
     width = 224 if 'inception' not in args.arch else 299
@@ -408,7 +416,7 @@ if __name__=='__main__':
         acc, loss = test(testloader, model, epoch, args)
         accs.append(acc)
         losses.append(loss)
-        isbest = acc[0] < bestacc
+        isbest = acc[0] > bestacc
         if acc[0] > bestacc:
             bestacc = acc[0]
         save_state(model, accs, epoch, losses, args, optimizer, isbest)
