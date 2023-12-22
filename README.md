@@ -27,14 +27,15 @@ As for face verification experiments, we mainly refer to repository [face.evoLVe
 
 If you benefit from our work in your research, please consider to cite the following paper:
 ```
-@article{yang2022boosting,
-  title={Boosting the Adversarial Transferability of Surrogate Models with Dark Knowledge},
+@inproceedings{yang2023boosting,
   author={Yang, Dingcheng and Xiao, Zihao and Yu, Wenjian},
-  booktitle={2023 IEEE 35th International Conference on Tools with Artificial Intelligence (ICTAI)},
-  pages={626--634},
+  booktitle={2023 IEEE 35th International Conference on Tools with Artificial Intelligence (ICTAI)}, 
+  title={Boosting the Adversarial Transferability of Surrogate Models with Dark Knowledge}, 
   year={2023},
-  organization={IEEE}
-}
+  volume={},
+  number={},
+  pages={627-635},
+  doi={10.1109/ICTAI59109.2023.00098}}
 ```
 
 Please feel free to contact us if you have any questions.
